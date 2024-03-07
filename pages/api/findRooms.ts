@@ -36,16 +36,16 @@ export default async function handler(
   const roomStr = room?.toString().replace(/\D/g, "").padStart(5, "0");
   const url = `${base}?term=${term}&classroom=${building}++|${nonNumberStartingString}${roomStr}${nonNumberEndingString}`;
   const response = await fetch(url);
-  console.log(url);
 
   const data = await response.text();
   const regex = /createFullCalendar\(\$\.parseJSON\('(.*)'\)/g;
   const match = regex.exec(data);
-
-  console.log(match);
   if (match) {
     const json = JSON.parse(match[1]);
-    res.status(200).json(json);
+    res.status(200).json({
+      data: json,
+      url: url,
+    });
   } else {
     res.status(200).json({ error: "No data found" });
   }

@@ -5,12 +5,18 @@ import { use, useEffect, useState } from 'react'
 import ClipLoader from "react-spinners/BeatLoader";
 
 
-function openNow(data: any[]) {
+function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}] {
   const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S']
   const date = new Date()
   const dayOfWeek = days[date.getDay()]
   let openNow = true;
 
+  let closestTime = {
+    strt_time: "23:59:59",
+    stop_time: "00:00:00"
+  }
+  
+  let delta = Infinity;
   // determine if overlap with current time
   for (const event of data) {
     if (event["Days_in_week"].includes(dayOfWeek)) {
@@ -36,9 +42,45 @@ function openNow(data: any[]) {
         openNow = false
         break
       }
+      if (date < start) {
+        if (start.getTime() - date.getTime() < delta) {
+          delta = start.getTime() - date.getTime()
+          closestTime = {
+            strt_time: event["strt_time"],
+            stop_time: event["stop_time"]
+          }
+
+          // convert to 12 hour time
+          let startHour = parseInt(event["strt_time"].split(":")[0])
+          let startMinute = event["strt_time"].split(":")[1]
+          let startAmPm = "AM"
+          if (startHour > 12) {
+            startHour -= 12
+            startAmPm = "PM"
+          }
+          closestTime.strt_time = `${startHour}:${startMinute} ${startAmPm}`
+          let stopHour = parseInt(event["stop_time"].split(":")[0])
+          let stopMinute = event["stop_time"].split(":")[1]
+          let stopAmPm = "AM"
+          if (stopHour > 12) {
+            stopHour -= 12
+            stopAmPm = "PM"
+          }
+          closestTime.stop_time = `${stopHour}:${stopMinute}${stopAmPm}`
+          closestTime.strt_time = `${startHour}:${startMinute}${startAmPm}`
+        }
+      }
+
     }
   }
-  return openNow
+
+  if (delta == Infinity) {
+    closestTime = {
+      strt_time: "Open All Day",
+      stop_time: ""
+    }
+  }
+  return [openNow, closestTime]
 }
 
 export default function Home() {
@@ -48,7 +90,7 @@ export default function Home() {
   const [buildings, setBuildings] = useState([""])
   // state for current building
   const [currBuilding, setBuilding] = useState('')  
-  const [openRooms, setOpenRooms] = useState([{building: "", room: ""}])
+  const [openRooms, setOpenRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: ""}])
 
 
   useEffect(() => {
@@ -72,11 +114,13 @@ export default function Home() {
         console.log(url)
         const response = await fetch(url)
         const data = await response.json()
-        if (data.error) {
+        console.log(data)
+        if (data.error && !data.data) {
           console.log(data.error)
         } else {
-          if (openNow(data)) {
-            open.push({building: building, room: num})
+          let [isOpen, closestTime] = openNow(data.data);
+          if (isOpen) {
+            open.push({building: building as string, room: num, closestTime: closestTime, url: data.url})
           }
         }
       }
@@ -105,7 +149,7 @@ export default function Home() {
         aria-label="Loading Spinner"
         data-testid="loader"
       /> : openRooms.map((room, i) => {
-          return <li key={i}>{room.building} {room.room}</li>
+          return <a target='_blank' key={i} href={room.url}><li>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</li></a>
         })}
       </ul>
     </div>
