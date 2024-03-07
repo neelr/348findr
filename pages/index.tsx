@@ -9,12 +9,10 @@ function openNow(data: any[]) {
   const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S']
   const date = new Date()
   const dayOfWeek = days[date.getDay()]
-  alert(dayOfWeek)
   let openNow = true;
 
   // determine if overlap with current time
   for (const event of data) {
-    console.log(event)
     if (event["Days_in_week"].includes(dayOfWeek)) {
       // strt_time and stop_time are in format HH:MM:SS
       // use Date object to compare
