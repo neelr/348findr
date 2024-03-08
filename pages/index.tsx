@@ -107,7 +107,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
 
   if (delta == Infinity && openNow) {
     closestTime = {
-      strt_time: "Open All Day",
+      strt_time: "open for rest of the day!",
       stop_time: ""
     }
   } else if (delta == Infinity && !openNow) {
