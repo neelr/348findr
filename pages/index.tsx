@@ -5,6 +5,19 @@ import { use, useEffect, useState } from 'react'
 import ClipLoader from "react-spinners/BeatLoader";
 
 
+const LoadingBar = (props: {percent: number}) => {
+  // custom loading bar
+  return (
+    <div>
+      <div className="loading-bar" style={{width: "100px", height: "10px", backgroundColor: "lightgrey", borderRadius: "10px"}}>
+        <div className="filler" style={{width: `${props.percent}%`, height: "100%", backgroundColor: "aquamarine", borderRadius: "inherit",
+      borderWidth: "1px", borderColor: "black", borderStyle: "solid"}}>
+        </div>
+        </div>
+    </div>
+  )
+}
+
 function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}] {
   const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S']
   const date = new Date()
@@ -40,6 +53,23 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
 
       if (start <= date && date <= end) {
         openNow = false
+        let startHour = parseInt(event["strt_time"].split(":")[0])
+          let startMinute = event["strt_time"].split(":")[1]
+          let startAmPm = "AM"
+          if (startHour > 12) {
+            startHour -= 12
+            startAmPm = "PM"
+          }
+          closestTime.strt_time = `${startHour}:${startMinute} ${startAmPm}`
+          let stopHour = parseInt(event["stop_time"].split(":")[0])
+          let stopMinute = event["stop_time"].split(":")[1]
+          let stopAmPm = "AM"
+          if (stopHour > 12) {
+            stopHour -= 12
+            stopAmPm = "PM"
+          }
+          closestTime.stop_time = `${stopHour}:${stopMinute}${stopAmPm}`
+          closestTime.strt_time = `${startHour}:${startMinute}${startAmPm}`
         break
       }
       if (date < start) {
@@ -74,9 +104,14 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
     }
   }
 
-  if (delta == Infinity) {
+  if (delta == Infinity && openNow) {
     closestTime = {
       strt_time: "Open All Day",
+      stop_time: ""
+    }
+  } else if (delta != Infinity) {
+    closestTime = {
+      strt_time: "No Data Found",
       stop_time: ""
     }
   }
@@ -88,13 +123,16 @@ export default function Home() {
   const term = '24W'
   // state for current buildings
   const [buildings, setBuildings] = useState([""])
+  const [percent, setPercent] = useState(100)
   // state for current building
   const [currBuilding, setBuilding] = useState('')  
   const [openRooms, setOpenRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: ""}])
+  const [closedRooms, setClosedRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: ""}])
 
 
   useEffect(() => {
     setOpenRooms([]);
+    setClosedRooms([]);
     (async () => {
       let data = await fetch('/api/getRooms')
       let {rooms, error} = await data.json()
@@ -102,7 +140,12 @@ export default function Home() {
       setBuildings(Array.from(new Set(buildingsMap)))
 
       const open = []
+      const closed = []
+      let i = 0;
+      rooms = rooms.filter((room: {building: string}) => room["building"] == currBuilding)
       for (const room of rooms) {
+        i++;
+        setPercent((i / rooms.length) * 100)
         const building = room["building"]
         const num = room["room"] as string
 
@@ -121,17 +164,25 @@ export default function Home() {
           let [isOpen, closestTime] = openNow(data.data);
           if (isOpen) {
             open.push({building: building as string, room: num, closestTime: closestTime, url: data.url})
+          } else {
+            closed.push({building: building as string, room: num, closestTime: closestTime, url: data.url})
           }
         }
       }
 
       setOpenRooms(open)
+      setClosedRooms(closed)
     })()
   }, [currBuilding])
 
   return (
     <div className={styles.container}>
+      <Head>
+        <title>348findr</title>
+        <meta name="description" content="classroom finder" />
+      </Head>
       <h1>classroom finder</h1>
+      <p>select a building, and it'll tell u classes open rn—along with the next block of time it's booked</p>
 
       <select onChange={(e) => setBuilding(e.target.value)}>
         <option value="">Select a building</option>
@@ -142,16 +193,32 @@ export default function Home() {
       </select>
 
       <ul>
-        {openRooms.length == 0 ? <ClipLoader
-        color={"white"}
-        loading={true}
-        size={10}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      /> : openRooms.map((room, i) => {
+        {openRooms.length == 0 ? <LoadingBar
+          percent={percent}
+        />
+         : openRooms.map((room, i) => {
           return <a target='_blank' key={i} href={room.url}><li>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</li></a>
         })}
       </ul>
+
+      {
+        closedRooms.length > 0 ? <div>
+          <h2>closed rooms</h2>
+          <ul style={{
+            color: "#ef7676"
+          }}>
+            {closedRooms.map((room, i) => {
+              return <a target='_blank' key={i} href={room.url}><li>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</li></a>
+            })
+          }
+          </ul>
+        </div> : <div></div>
+      }
+
+      <footer>
+        <p>made with {"<3"} by <a style={{color:"aquamarine"}} href="https://neelr.dev" target="_blank">@neelr</a></p>
+        <p><a style={{color:"aquamarine"}} href="https://github.com/neelr/348findr" target="_blank">source</a></p>
+      </footer>
     </div>
   )
 }
