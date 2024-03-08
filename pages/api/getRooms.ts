@@ -28,8 +28,8 @@ export default async function handler(
 
     for (const building in json) {
         let room: { building: string, room: string } = {
-            building: json[building].text.split("  ")[0],
-            room: json[building].text.split("  ")[1]
+            building: json[building].text.replace(/\s+/g, ' ').split(" ")[0],
+            room: json[building].text.replace(/\s+/g, ' ').split(" ")[1]
         }
         rooms.push(room)
     }

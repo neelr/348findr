@@ -142,6 +142,7 @@ export default function Home() {
       const open = []
       const closed = []
       let i = 0;
+      console.log(rooms)
       rooms = rooms.filter((room: {building: string}) => room["building"] == currBuilding)
       for (const room of rooms) {
         i++;
