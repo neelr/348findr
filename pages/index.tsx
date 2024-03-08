@@ -52,6 +52,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
       end.setSeconds(event["stop_time"].split(":")[2])
 
       if (start <= date && date <= end) {
+        delta = start.getTime() - date.getTime()
         openNow = false
         let startHour = parseInt(event["strt_time"].split(":")[0])
           let startMinute = event["strt_time"].split(":")[1]
@@ -109,7 +110,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
       strt_time: "Open All Day",
       stop_time: ""
     }
-  } else if (delta != Infinity) {
+  } else if (delta == Infinity && !openNow) {
     closestTime = {
       strt_time: "No Data Found",
       stop_time: ""
@@ -134,7 +135,7 @@ export default function Home() {
     setOpenRooms([]);
     setClosedRooms([]);
     (async () => {
-      let data = await fetch('/api/getRooms')
+      let data = await fetch('/api/getRooms?term=24W')
       let {rooms, error} = await data.json()
       let buildingsMap = rooms.map((room:{building:string}) => room["building"]);
       setBuildings(Array.from(new Set(buildingsMap)))
