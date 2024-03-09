@@ -1,5 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
 type Data = {
   error?: string;
@@ -39,13 +41,18 @@ export default async function handler(
 
   const data = await response.text();
   const regex = /createFullCalendar\(\$\.parseJSON\('(.*)'\)/g;
+  const regex2 = /span class='pipe'>\|<\/span>[\s\S]*?<span class='pipe'>\|<\/span>([\s\S]*?)<\/h3>/g;
   const match = regex.exec(data);
+  const match2 = regex2.exec(data);
+
   if (match) {
     const json = JSON.parse(match[1]);
-    res.status(200).json({
-      data: json,
-      url: url,
-    });
+    if (match2) {
+      const roomName = match2[1].trim();
+      res.status(200).json({ data: json, url: url, name: roomName.includes("Capacity") ? "" : roomName });
+      return
+    }
+    res.status(200).json({ data: json, url: url, name: ""});
   } else {
     res.status(200).json({ error: "No data found" });
   }

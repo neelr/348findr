@@ -57,7 +57,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
         let startHour = parseInt(event["strt_time"].split(":")[0])
           let startMinute = event["strt_time"].split(":")[1]
           let startAmPm = "AM"
-          if (startHour > 12) {
+          if (startHour >= 12) {
             startHour -= 12
             startAmPm = "PM"
           }
@@ -65,12 +65,12 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
           let stopHour = parseInt(event["stop_time"].split(":")[0])
           let stopMinute = event["stop_time"].split(":")[1]
           let stopAmPm = "AM"
-          if (stopHour > 12) {
+          if (stopHour >= 12) {
             stopHour -= 12
             stopAmPm = "PM"
           }
           closestTime.stop_time = `${stopHour}:${stopMinute}${stopAmPm}`
-          closestTime.strt_time = `${startHour}:${startMinute}${startAmPm}`
+          closestTime.strt_time = `closed from ${startHour}:${startMinute}${startAmPm}`
         break
       }
       if (date < start) {
@@ -85,7 +85,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
           let startHour = parseInt(event["strt_time"].split(":")[0])
           let startMinute = event["strt_time"].split(":")[1]
           let startAmPm = "AM"
-          if (startHour > 12) {
+          if (startHour >= 12) {
             startHour -= 12
             startAmPm = "PM"
           }
@@ -93,12 +93,12 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
           let stopHour = parseInt(event["stop_time"].split(":")[0])
           let stopMinute = event["stop_time"].split(":")[1]
           let stopAmPm = "AM"
-          if (stopHour > 12) {
+          if (stopHour >= 12) {
             stopHour -= 12
             stopAmPm = "PM"
           }
           closestTime.stop_time = `${stopHour}:${stopMinute}${stopAmPm}`
-          closestTime.strt_time = `${startHour}:${startMinute}${startAmPm}`
+          closestTime.strt_time = ` closes @ ${startHour}:${startMinute}${startAmPm}`
         }
       }
 
@@ -107,7 +107,7 @@ function openNow(data: any[]) : [boolean, {strt_time: string, stop_time: string}
 
   if (delta == Infinity && openNow) {
     closestTime = {
-      strt_time: "open for rest of the day!",
+      strt_time: "open till EOD",
       stop_time: ""
     }
   } else if (delta == Infinity && !openNow) {
@@ -127,8 +127,8 @@ export default function Home() {
   const [percent, setPercent] = useState(100)
   // state for current building
   const [currBuilding, setBuilding] = useState('')  
-  const [openRooms, setOpenRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: ""}])
-  const [closedRooms, setClosedRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: ""}])
+  const [openRooms, setOpenRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: "", name: ""}])
+  const [closedRooms, setClosedRooms] = useState([{building: "", room: "", closestTime: {strt_time: "", stop_time: ""}, url: "", name: ""}])
 
 
   useEffect(() => {
@@ -165,9 +165,9 @@ export default function Home() {
         } else {
           let [isOpen, closestTime] = openNow(data.data);
           if (isOpen) {
-            open.push({building: building as string, room: num, closestTime: closestTime, url: data.url})
+            open.push({building: building as string, room: num, closestTime: closestTime, url: data.url, name: data.name})
           } else {
-            closed.push({building: building as string, room: num, closestTime: closestTime, url: data.url})
+            closed.push({building: building as string, room: num, closestTime: closestTime, url: data.url, name: data.name})
           }
         }
       }
@@ -199,7 +199,7 @@ export default function Home() {
           percent={percent}
         />
          : openRooms.map((room, i) => {
-          return <a target='_blank' key={i} href={room.url}><li>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</li></a>
+          return <li key={i}><a target='_blank'  href={room.url}>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}, {room.name}</a></li>
         })}
       </ul>
 
@@ -210,7 +210,7 @@ export default function Home() {
             color: "#ef7676"
           }}>
             {closedRooms.map((room, i) => {
-              return <a target='_blank' key={i} href={room.url}><li>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</li></a>
+              return <li key={i}><a target='_blank'  href={room.url}>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}, {room.name}</a></li>
             })
           }
           </ul>

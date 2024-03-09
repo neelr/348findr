@@ -11,6 +11,10 @@ a {
   text-decoration: none;
 }
 
+li {
+  margin-right: auto;
+}
+
 a:hover {
   text-decoration: underline;
 }
