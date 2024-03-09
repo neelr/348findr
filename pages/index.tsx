@@ -10,7 +10,7 @@ const LoadingBar = (props: {percent: number}) => {
   return (
     <div>
       <div className="loading-bar" style={{width: "100px", height: "10px", backgroundColor: "lightgrey", borderRadius: "10px"}}>
-        <div className="filler" style={{width: `${props.percent}%`, height: "100%", backgroundColor: "aquamarine", borderRadius: "inherit",
+        <div className="filler" style={{width: `${props.percent}%`, height: "100%", backgroundColor: "588bff", borderRadius: "inherit",
       borderWidth: "1px", borderColor: "black", borderStyle: "solid"}}>
         </div>
         </div>
@@ -155,7 +155,7 @@ export default function Home() {
           continue;
         }
 
-        const url = `/api/findRooms?term=${term}&building=${building}&room=${num.trim()}`
+        const url = `/api/findRooms?term=${term}&building=${building}&room=${num.trim()}&removeCache=True`
         console.log(url)
         const response = await fetch(url)
         const data = await response.json()
@@ -199,7 +199,7 @@ export default function Home() {
           percent={percent}
         />
          : openRooms.map((room, i) => {
-          return <li key={i}><a target='_blank'  href={room.url}>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}, {room.name}</a></li>
+          return <li key={i}><a target='_blank'  href={room.url}>{room.name == "" ? room.building : room.name} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</a></li>
         })}
       </ul>
 
@@ -210,7 +210,7 @@ export default function Home() {
             color: "#ef7676"
           }}>
             {closedRooms.map((room, i) => {
-              return <li key={i}><a target='_blank'  href={room.url}>{room.building} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}, {room.name}</a></li>
+              return <li key={i}><a target='_blank'  href={room.url}>{room.name == "" ? room.building : room.name} {room.room}, {room.closestTime.strt_time} - {room.closestTime.stop_time}</a></li>
             })
           }
           </ul>
@@ -218,8 +218,8 @@ export default function Home() {
       }
 
       <footer>
-        <p>made with {"<3"} by <a style={{color:"aquamarine"}} href="https://neelr.dev" target="_blank">@neelr</a></p>
-        <p><a style={{color:"aquamarine"}} href="https://github.com/neelr/348findr" target="_blank">source</a></p>
+        <p>made with {"<3"} by <a style={{color:"#588bff"}} href="https://neelr.dev" target="_blank">@neelr</a></p>
+        <p><a style={{color:"588bff"}} href="https://github.com/neelr/348findr" target="_blank">source</a> | <a style={{color:"588bff"}} href="https://github.com/bobeta-c/Grid_Search_UCLA" target="_blank">inspo!</a> </p>
       </footer>
     </div>
   )
